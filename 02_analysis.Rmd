@@ -1,0 +1,83 @@
+---
+title: "analysis"
+author: "Astrid Elmann Hansen"
+date: '2022-10-28'
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+pacman::p_load(tidyverse)
+df <- read_csv("anon_data.csv")
+df <- df %>% 
+  filter(gender == "Kvinde" | gender == "Mand") %>% 
+  select(gender, wb, self_oriented, other_oriented, socially_prescribed)
+
+df$gender <- as.factor(df$gender)
+```
+
+# H1
+
+```{r}
+H1 <- lm(data = df,
+           formula = wb ~ self_oriented + other_oriented  + socially_prescribed )
+
+summary(H1)
+```
+
+# M1
+
+```{r}
+M1 <- lm(data = df,
+           formula = wb ~ gender)
+
+summary(M1)
+```
+
+# M2
+
+```{r}
+M2 <- lm(data = df,
+           formula = wb ~ self_oriented + other_oriented  + socially_prescribed + gender)
+
+summary(M2)
+```
+
+# M3
+
+```{r}
+M3 <- lm(data = df,
+           formula = wb ~ self_oriented * gender + socially_prescribed * gender + other_oriented * gender + gender)
+
+summary(M3)
+```
+
+# Model comparison
+```{r}
+anova(M1, H1, M2, M3)
+```
+
+# Marginal effect
+```{r}
+x1x2 <- lm(data = df,
+                  formula = 
+                    wb ~ self_oriented + socially_prescribed)
+
+x3 <- lm(data = df,
+                  formula = 
+                     x1x2[["residuals"]] ~ other_oriented)
+
+summary(x3)
+
+marginal <- tibble(oo = df$other_oriented, res = x1x2[["residuals"]])
+
+marginal %>% 
+ggplot(aes(x = oo, y = res)) + 
+  geom_point() + 
+  geom_smooth(method = lm, se = FALSE) +
+  xlab("Other oriented") +
+  ylab("Residuals") +
+  theme_bw()  
+```

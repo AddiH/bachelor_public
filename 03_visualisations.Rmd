@@ -1,0 +1,303 @@
+---
+title: "Viz_for_paper"
+author: "Astrid Elmann Hansen"
+date: '2023-01-19'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+pacman::p_load(tidyverse, ggpubr)
+df <- read_csv("anon_data.csv")
+
+df$job <- as.factor(df$job)
+
+df$gender <- ifelse(df$gender == "Kvinde", "Women", "Men")
+df$gender <- as.factor(df$gender)
+
+men <- df %>% filter(gender == "Men")
+women <- df %>% filter(gender == "Women")
+```
+
+# Histograms
+
+```{r, echo=FALSE, message = FALSE}
+wb <- df %>% select(gender, job, wb) %>% 
+  mutate(type = "WEMWBS") %>% 
+  rename("value" = "wb")
+
+wb$wb <- wb$value
+
+self_oriented <- df %>% select(gender, job, self_oriented, wb) %>% 
+  mutate(type = "Self oriented") %>% 
+  rename("value" = "self_oriented")
+
+other_oriented <- df %>% select(gender, job, other_oriented, wb) %>% 
+  mutate(type = "Other oriented") %>% 
+  rename("value" = "other_oriented")
+
+socially_prescribed <- df %>% select(gender, job, socially_prescribed, wb) %>% 
+  mutate(type = "Socially prescribed") %>% 
+  rename("value" = "socially_prescribed")
+
+pivot <- rbind(wb, self_oriented, other_oriented, socially_prescribed)
+pivot$gender <- factor(pivot$gender, levels = c("Women", "Men"))
+```
+
+```{r, echo=FALSE, message = FALSE}
+pivot %>%  
+  ggplot(aes(x = value, fill = gender)) + 
+  geom_histogram() +
+  ggtitle("Histogram of well-being and perfectionism dimensions") +
+  theme_bw() +
+  facet_wrap(~type) +
+  theme(axis.title.y=element_blank(),
+        axis.title.x=element_blank()) +
+  labs(fill='Gender')
+
+#ggsave("plots/histogram.pdf", dpi=200)
+```
+
+
+# M1
+```{r, echo=FALSE, message = FALSE}
+# m1_box <- 
+#   df %>% ggplot(aes(y = wb, x = gender, fill = gender)) + 
+#   geom_boxplot() +
+#   scale_fill_manual(values=c("#56BCC2", "#E77D72"))+
+#   ggtitle("Boxplot of gender's well-being") +
+#   theme_bw() +
+#   theme(axis.ticks.x = element_blank(),
+#         axis.title.x = element_blank(),
+#         legend.title = element_blank(),
+#         legend.position="none") +
+#   labs(fill = "Gender",
+#        y = "WEMWBS")
+# m1_box
+# 
+# ggsave("plots/m1_box.pdf", width=5, height=4, dpi=200)
+```
+
+```{r, echo=FALSE, message = FALSE}
+# m1_a <- 
+#   df %>% ggplot(aes(x = wb, fill = gender)) + 
+#   geom_density(alpha = .5) +
+#     scale_fill_manual(values=c("#56BCC2", "#E77D72"))+
+#   xlim(14, 70) +
+#   ggtitle("Density and mean of gender's well-being") +
+#   geom_vline(xintercept = mean(men$wb), color = "#56BCC2") +
+#   geom_vline(xintercept = mean(women$wb), color = "#E77D72") +
+#   theme_bw() +
+#   theme(axis.ticks.y = element_blank(),
+#         axis.text.y = element_blank(),
+#         legend.position = c(0.88, 0.8),
+#         legend.title=element_blank()) +
+#   labs(fill = "Gender",
+#        x = "Well-being",
+#        y = NULL)
+# m1_a
+# 
+# ggsave("plots/m1_a.pdf", dpi=200)
+```
+
+```{r fig.width = 4, fig.height = 6, echo=FALSE, message = FALSE}
+m1_b <- 
+  df %>% ggplot(aes(y = wb, x = gender, color = gender)) + 
+  geom_jitter(width = 0.2) +
+    scale_color_manual(values=c("#56BCC2", "#E77D72"))+
+  ylim(14, 70) +
+  ggtitle("Gender and well-being") +
+  theme_bw() +
+  labs(color = "Gender",
+       y = "Well-being",
+       x = "Gender")+
+  theme(legend.position="none")
+
+m1_b
+
+#ggsave("plots/m1_b.pdf", width=4, height=6, dpi=200)
+```
+
+
+# H1
+
+```{r, fig.width = 4, fig.height = 7, echo=FALSE, message = FALSE}
+so <- 
+  df %>% ggplot(aes(x = self_oriented, y = wb)) + 
+  geom_point() + 
+  geom_abline(intercept = 56.73551, slope = -0.13059) +
+ ggtitle("2D visualisation of H1") +
+  xlab("Self oriented perfectionism") +
+  ylab("Well-being") +
+  xlim(15, 105) +
+  ylim(14, 70) +
+  theme_bw() 
+
+oo <-  
+  df %>% ggplot(aes(x = other_oriented, y = wb)) + 
+  geom_point() + 
+  geom_abline(intercept = 56.73551, slope = 0.16330) +
+ # ggtitle("Other oriented perfectionism predicting wellbeing") +
+  xlab("Other oriented perfectionism") +
+  ylab("Well-being") +
+  xlim(15, 105) +
+  ylim(14, 70) +
+  theme_bw() 
+  
+sp <-  
+  df %>% ggplot(aes(x = socially_prescribed, y = wb)) + 
+  geom_point() + 
+  geom_abline(intercept = 56.73551, slope = -0.17026) +
+  #ggtitle("Socially prescribed perfectionism predicting wellbeing") +
+  xlab("Socially prescribed perfectionism") +
+  ylab("Well-being") +
+  xlim(15, 105) +
+  ylim(14, 70) +
+  theme_bw()  
+
+ggarrange(
+  so, oo, sp,
+  nrow = 3,
+  common.legend = TRUE, legend = "bottom"
+  )
+
+#ggsave("plots/h1.pdf", width=4, height=8, dpi=200)
+```
+
+# M2
+
+```{r, fig.width = 4, fig.height = 8, echo=FALSE, message = FALSE}
+so <- 
+  df %>% ggplot(aes(x = self_oriented, y = wb, color = gender)) + 
+  geom_point() + 
+    scale_color_manual(values=c("#56BCC2", "#E77D72"))+
+  geom_abline(intercept = 55.66121,           slope = -0.11194, color = "#E77D72") + # women
+  geom_abline(intercept = 55.66121 + 2.66523, slope = -0.11194, color = "#56BCC2") + # men
+  ggtitle("2D visualisation of M2") +
+  xlab("Self oriented perfectionism") +
+  ylab("Well-being") +
+  xlim(15, 105) +
+  ylim(14, 70) +
+  labs(color = 'Gender') +
+  theme_bw() 
+
+oo <-  
+  df %>% ggplot(aes(x = other_oriented, y = wb, color = gender)) + 
+  geom_point() + 
+    scale_color_manual(values=c("#56BCC2", "#E77D72"))+
+  geom_abline(intercept = 55.66121,           slope = 0.13480, color = "#E77D72") + # women
+  geom_abline(intercept = 55.66121 + 2.66523, slope = 0.13480, color = "#56BCC2") + # men
+  #ggtitle("Other oriented perfectionism predicting wellbeing") +
+  xlab("Other oriented perfectionism") +
+  ylab("Well-being") +
+  xlim(15, 105) +
+  ylim(14, 70) +
+  labs(color = 'Gender') +
+  theme_bw() 
+  
+sp <-  
+  df %>% ggplot(aes(x = socially_prescribed, y = wb, color = gender)) + 
+  geom_point() + 
+    scale_color_manual(values=c("#56BCC2", "#E77D72"))+
+  geom_abline(intercept = 55.66121,           slope = -0.16533, color = "#E77D72") + # women
+  geom_abline(intercept = 55.66121 + 2.66523, slope = -0.16533, color = "#56BCC2") + # men
+  #ggtitle("Socially prescribed perfectionism predicting wellbeing") +
+  xlab("Socially prescribed perfectionism") +
+  ylab("Well-being") +
+  xlim(15, 105) +
+  ylim(14, 70) +
+  labs(color = 'Gender') +
+  theme_bw()  
+
+ggarrange(
+  so, oo, sp,
+  nrow = 3,
+  common.legend = TRUE, legend = "bottom"
+  )
+
+#ggsave("plots/m2.pdf", width=4, height=8, dpi=200)
+```
+
+# M3
+
+```{r, fig.width = 4, fig.height = 8, echo=FALSE, message = FALSE}
+so <- 
+  df %>% ggplot(aes(x = self_oriented, y = wb, color = gender)) + 
+  geom_point() + 
+    scale_color_manual(values=c("#56BCC2", "#E77D72"))+
+  geom_abline(intercept = 54.85551,           slope = -0.12701,           color = "#E77D72") + # women
+  geom_abline(intercept = 54.85551 + 4.40890, slope = -0.12701 + 0.06160, color = "#56BCC2") + # men
+ ggtitle("2D visualisation of M3") +
+  xlab("Self oriented perfectionism") +
+  ylab("Well-being") +
+  xlim(15, 105) +
+  ylim(14, 70) +
+  labs(color = 'Gender') +
+  theme_bw() 
+
+oo <-  
+  df %>% ggplot(aes(x = other_oriented, y = wb, color = gender)) + 
+  geom_point() + 
+    scale_color_manual(values=c("#56BCC2", "#E77D72"))+
+  geom_abline(intercept =  54.85551,           slope = 0.16247,            color = "#E77D72") +  # women
+  geom_abline(intercept =  54.85551 + 4.40890, slope = 0.16247 + -0.09015, color = "#56BCC2") + # men
+  #ggtitle("Other oriented perfectionism predicting wellbeing") +
+  xlab("Other oriented perfectionism") +
+  ylab("Well-being") +
+  xlim(15, 105) +
+  ylim(14, 70) +
+  labs(color = 'Gender') +
+  theme_bw() 
+  
+sp <-  
+  df %>% ggplot(aes(x = socially_prescribed, y = wb, color = gender)) + 
+  geom_point() + 
+    scale_color_manual(values=c("#56BCC2", "#E77D72"))+
+  geom_abline(intercept =  54.85551,           slope = -0.03215,            color = "#E77D72") + # women
+  geom_abline(intercept =  54.85551 + 4.40890, slope = -0.03215 + -0.03215, color = "#56BCC2") + # men
+  #ggtitle("Socially prescribed perfectionism predicting wellbeing") +
+  xlab("Socially prescribed perfectionism") +
+  ylab("Well-being") +
+  xlim(15, 105) +
+  ylim(14, 70) +
+  labs(color = 'Gender') +
+  theme_bw()  
+
+ggarrange(
+  so, oo, sp,
+  nrow = 3,
+  common.legend = TRUE, legend = "bottom"
+  )
+
+#ggsave("plots/m3.pdf", width=4, height=8, dpi=200)
+```
+
+# Marginal effects
+
+```{r}
+x1x2 <- lm(data = df,
+                  formula = 
+                    wb ~ self_oriented + socially_prescribed)
+
+x3 <- lm(data = df,
+                  formula = 
+                     x1x2[["residuals"]] ~ other_oriented)
+
+summary(x3)
+```
+
+
+```{r, echo=FALSE, message = FALSE}
+marginal <- tibble(oo = df$other_oriented, res = x1x2[["residuals"]])
+
+marginal %>% 
+ggplot(aes(x = oo, y = res)) + 
+  geom_point() + 
+  geom_abline(intercept =  -6.54250, slope = 0.15018) +
+  xlab("Other oriented perfectionism") +
+  ylab('Residuals of  "WB ~ SOP + SPP"') +
+  ggtitle("Marginal effects of other oriented perfectionism") +
+  xlim(15, 105) +
+  theme_bw()  
+
+#ggsave("plots/marginal_effects.pdf", dpi=200)
+```

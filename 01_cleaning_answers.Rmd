@@ -1,0 +1,207 @@
+---
+title: "cleaning_answers"
+author: "Astrid Elmann Hansen"
+date: '2022-11-03'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+pacman::p_load(tidyverse)
+raw_df <- read_csv("raw_answers.csv")
+```
+
+```{r}
+raw_df <- raw_df %>% na.omit() # first three rows are empty
+```
+
+
+```{r cleaning}
+# give better names to columns
+df <- raw_df %>% 
+  rename(
+"time"= "Tidsstempel",
+"consent" = "Jeg har læst og accepterer ovenstående",
+"gender" = "Hvilket køn er du?",
+"age" = "Hvor gammel er du?",
+"job" = "Hvad er din primære beskæftigelse?",
+"wb_1" = "Jeg har følt mig optimistisk i forhold til fremtiden [.]",
+"wb_2" = "Jeg har følt mig nyttig [.]",
+"wb_3" = "Jeg har følt mig afslappet [.]",
+"wb_4" = "Jeg har været interesseret i andre mennesker [.]",
+"wb_5" = "Jeg har haft overskud af energi [.]",
+"wb_6" = "Jeg har klaret problemer godt [.]",
+"wb_7" = "Jeg har tænkt klart [.]",
+"wb_8" = "Jeg har haft det godt med mig selv [.]",
+"wb_9" = "Jeg har følt mig tæt på andre mennesker [.]",
+"wb_10" = "Jeg har følt mig selvsikker [.]",
+"wb_11" = "Jeg har været i stand til at danne min egen mening om ting [.]",
+"wb_12" = "Jeg har følt mig elsket [.]",
+"wb_13" = "Jeg har været interesseret i nye ting [.]",
+"wb_14" = "Jeg har følt mig fornøjet [.]",
+"p_1" = "Når jeg arbejder på noget, kan jeg ikke slappe af, før det er perfekt",
+"p_2" = "For det meste kritiserer jeg ikke andre for at give op for hurtigt",
+"p_3" = "Det er ikke vigtigt for mig, at de mennesker jeg er tæt på, er succesfulde",
+"p_4" = "Jeg kritiserer sjældent mine venner for at acceptere det næstbedste",
+"p_5" = "Jeg synes, at det er svært at leve op til andres forventninger til mig",
+"p_6" = "Et af mine mål er at være perfekt i alt, hvad jeg laver",
+"p_7" = "Alt, som andre foretager sig, skal være af højeste kvalitet",
+"p_8" = "Jeg stræber aldrig efter perfektion i mit arbejde",
+"p_9" = "Folk omkring mig har nemt ved at acceptere, at jeg også kan begå fejl",
+"p_10" = "Jeg er ligeglad med, når folk omkring mig ikke gør deres absolut bedste",                                   
+"p_11" = "Når jeg klarer mig godt, forventer andre mere af mig",
+"p_12" = "Det er sjældent, at jeg føler et behov for at være perfekt",
+"p_13" = "Hvis jeg foretager mig noget, som er mindre end perfekt, vil det blive set som et dårligt stykke arbejde af dem omkring mig",
+"p_14" = "Jeg stræber efter at være så perfekt, som jeg kan være",
+"p_15" = "Det er vigtigt for mig, at jeg er perfekt, når jeg kaster mig ud i noget nyt",
+"p_16" = "Jeg har høje forventninger til folk, som er vigtige for mig",
+"p_17" = "Jeg stræber efter at være den bedste i alt, hvad jeg foretager mig",
+"p_18" = "Folk omkring mig forventer, at jeg er succesfuld i alt, hvad jeg foretager mig",
+"p_19" = "Jeg har ikke meget høje forventninger til folk omkring mig",
+"p_20" = "Jeg kræver intet mindre end perfektion af mig selv",
+"p_21" = "Andre vil godt kunne lide mig, selvom jeg ikke er fantastisk til alting",
+"p_22" = "Jeg gider ikke mennesker, som ikke stræber efter at forbedre sig selv",
+"p_23" = "Jeg bryder mig ikke om at se fejl i mit arbejde",
+"p_24" = "Jeg forventer ikke særlig meget af mine venner",
+"p_25" = "Succes betyder, at jeg arbejder endnu hårdere for at tilfredsstille andre",
+"p_26" = "Hvis jeg beder nogen om at gøre noget, forventer jeg, at det bliver gjort fejlfrit",
+"p_27" = "Jeg kan ikke udstå at se folk tæt på mig begå fejl",
+"p_28" = "Jeg er perfektionistisk, når jeg sætter mål for mig selv",
+"p_29" = "Folk, som betyder noget for mig, bør aldrig skuffe mig",
+"p_30" = "Andre synes, at jeg er okay, selv hvis jeg fejler",
+"p_31" = "Jeg føler, at andre forventer for meget af mig",
+"p_32" = "Jeg skal altid udnytte mit fulde potentiale, når jeg arbejder",
+"p_33" = "Selvom de ikke viser det, bliver andre folk meget skuffede over mig, når jeg fejler",
+"p_34" = "Jeg behøver ikke at være den bedste til alt, jeg foretager mig",
+"p_35" = "Min familie forventer, at jeg er perfekt",
+"p_36" = "Jeg har ikke særlig høje mål for mig selv",
+"p_37" = "Mine forældre forventer sjældent, at jeg udmærker mig i alle aspekter af livet",
+"p_38" = "Jeg respekterer mennesker, som er gennemsnitlige",
+"p_39" = "Andre forventer intet mindre end perfektion fra mig",
+"p_40" = "Jeg har meget høje standarder for mig selv",                                                                          
+"p_41" = "Andre forventer mere af mig, end jeg er i stand til at give",                                                         
+"p_42" = "Jeg skal altid være succesfuld i skolen eller på arbejde",                                                           
+"p_43" = "Jeg er ligeglad med, om en tæt ven ikke gør deres ypperste",                                                 
+"p_44" = "Folk omkring mig synes stadig, at jeg er kompetent, selvom jeg begår fejl",                                       
+"p_45" = "Det er sjældent, at jeg forventer, at andre klarer sig fantastisk, i hvad end de gør"
+  )
+
+# change wb responses to numeric
+for (i in 6:19) {
+df[i] <- ifelse(df[i] == "Hele tiden", 5,
+          ifelse(df[i] == "Ofte", 4,
+          ifelse(df[i] == "Noget af tiden", 3,
+          ifelse(df[i] == "Sjældent", 2,
+          ifelse(df[i] == "På intet tidspunkt", 1, "error")))))}
+```
+
+
+```{r cleaning}
+# fix age
+babies <- df %>% filter(age <= 17) %>% summarize(count=n())
+paste0('ÅÅÅh nej der er ', babies$count[1], ' babyer i datasettet')
+
+df <- df %>% filter(age >= 18 & age <= 30)
+df <- df %>% filter(gender == "Kvinde" | gender == "Mand")
+
+# fix jobs
+df$job <- 
+          ifelse(df$job == "Højskoleelev", "Højskole",
+          ifelse(df$job == "Står i lære", "Studerende",
+          ifelse(df$job == "Selvstændig", "Arbejdende", 
+          ifelse(df$job == "Pensionist", "Pension", 
+          ifelse(df$job == "Sygemeldt fra arbejde pga stress, starter på studie i november", "Sygemeldt", df$job)))))
+
+df %>% group_by(job) %>% summarize(count=n()) %>% arrange(desc(count))
+```
+
+
+```{r math}
+# reverse perfection scores
+reverse <- c(2, 3, 4, 8, 9, 10, 12, 19, 21, 24, 30, 34, 36, 37, 38, 43, 44, 45) # questions to reverse
+reverse <- reverse + 19 # question index in df
+
+for (i in reverse) {
+ df[i] <- ifelse(df[i] == 1, 7,
+          ifelse(df[i] == 2, 6,
+          ifelse(df[i] == 3, 5,
+          ifelse(df[i] == 4, 4,
+          ifelse(df[i] == 5, 3, 
+          ifelse(df[i] == 6, 2, 
+          ifelse(df[i] == 7, 1, "error")))))))}
+
+df[,6:64] <- lapply(df[,6:64], as.integer) # change data to integer
+
+df <- df %>% mutate( # make more columns
+  self_oriented = rep(NA, nrow(df)),
+  other_oriented = rep(NA, nrow(df)),
+  socially_prescribed = rep(NA, nrow(df)),
+  psum = rep(NA, nrow(df)),
+  wb = rep(NA, nrow(df)),
+  swb = rep(NA, nrow(df)))
+```
+
+
+```{r math}
+# calculate the sums for perfectionism
+for (i in 1:nrow(df)) {
+df$self_oriented[i] <- sum(df$p_1[i], df$p_6[i], df$p_8[i], df$p_12[i], df$p_14[i], df$p_15[i], df$p_17[i], df$p_20[i], df$p_23[i], df$p_28[i], df$p_32[i], df$p_34[i], df$p_36[i], df$p_40[i], df$p_42[i])}
+
+for (i in 1:nrow(df)) {
+df$other_oriented[i] <- sum(df$p_2[i], df$p_3[i], df$p_4[i], df$p_7[i], df$p_10[i], df$p_16[i], df$p_19[i], df$p_22[i], df$p_24[i], df$p_26[i], df$p_27[i], df$p_29[i], df$p_38[i], df$p_43[i], df$p_45[i])}
+
+for (i in 1:nrow(df)) {
+df$socially_prescribed[i] <- sum(df$p_5[i], df$p_9[i], df$p_11[i], df$p_13[i], df$p_18[i], df$p_21[i], df$p_25[i], df$p_30[i], df$p_31[i], df$p_33[i], df$p_35[i], df$p_37[i], df$p_39[i], df$p_41[i], df$p_44[i])}
+
+for (i in 1:nrow(df)) {
+df$psum[i] <- sum(df$self_oriented[i], df$other_oriented[i], df$socially_prescribed[i])}
+
+for (i in 1:nrow(df)) {
+df$wb[i] <- sum(df$wb_1[i], df$wb_2[i], df$wb_3[i], df$wb_4[i], df$wb_5[i], df$wb_6[i], df$wb_7[i], df$wb_8[i], df$wb_9[i], df$wb_10[i], df$wb_11[i], df$wb_12[i], df$wb_13[i], df$wb_14[i])}
+```
+
+```{r SWEMWBS}
+# metric scores for SWEMWBS
+for (i in 1:nrow(df)) {
+df$swb[i] <- sum(df$wb_1[i], df$wb_2[i], df$wb_3[i], df$wb_6[i], df$wb_7[i], df$wb_9[i], df$wb_11[i])}
+
+df$swb <- ifelse(df$swb == 7, 7.00,
+            ifelse(df$swb == 8, 9.51,
+            ifelse(df$swb == 9, 11.25,
+            ifelse(df$swb == 10, 12.40,
+            ifelse(df$swb == 11, 13.33,
+            ifelse(df$swb == 12, 14.08,
+            ifelse(df$swb == 13, 14.75,
+            ifelse(df$swb == 14, 15.32,
+            ifelse(df$swb == 15, 15.84,
+            ifelse(df$swb == 16, 16.36,
+            ifelse(df$swb == 17, 16.88,
+            ifelse(df$swb == 18, 17.43,
+            ifelse(df$swb == 19, 17.98,
+            ifelse(df$swb == 20, 18.59,
+            ifelse(df$swb == 21, 19.25,
+            ifelse(df$swb == 22, 19.98,
+            ifelse(df$swb == 23, 20.73,
+            ifelse(df$swb == 24, 21.54,
+            ifelse(df$swb == 25, 22.35,
+            ifelse(df$swb == 26, 23.21,
+            ifelse(df$swb == 27, 24.11,
+            ifelse(df$swb == 28, 25.03,
+            ifelse(df$swb == 29, 26.02,
+            ifelse(df$swb == 30, 27.03,
+            ifelse(df$swb == 31, 28.13,
+            ifelse(df$swb == 32, 29.31,
+            ifelse(df$swb == 33, 30.70,
+            ifelse(df$swb == 34, 32.55,
+            ifelse(df$swb == 35, 35.00, NA )))))))))))))))))))))))))))))
+```
+
+
+```{r save}
+write_csv(df, "clean_answers.csv")
+
+df %>% 
+  filter(age > 18 & age <= 30) %>% 
+  select(-time, -consent, -age) %>% 
+  write_csv("anon_data.csv")
+```
+
