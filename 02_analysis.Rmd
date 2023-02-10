@@ -11,7 +11,7 @@ output:
 ```{r setup, include=FALSE}
 pacman::p_load(tidyverse)
 df <- read_csv("anon_data.csv")
-df <- df %>% 
+# df <- df %>% 
   filter(gender == "Kvinde" | gender == "Mand") %>% 
   select(gender, wb, self_oriented, other_oriented, socially_prescribed)
 
